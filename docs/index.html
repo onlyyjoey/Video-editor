@@ -10,7 +10,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="apple-touch-icon" href="icon-180.png">
-  <link rel="stylesheet" href="touch.css?v=86050ed39d57535d-8446456">
+  <link rel="stylesheet" href="touch.css?v=86050ed39d57535d-a365c85">
   <meta name="color-scheme" content="dark">
   <title>FilmCraft</title>
   <link rel="icon" href="favicon.png" type="image/png">
@@ -73,7 +73,7 @@
     addEventListener("error", (ev) => { if (window.filmcraftLoad.readyMs && isFatal(ev.error || ev.message)) window.filmcraftFatal(ev.error || ev.message); });
     addEventListener("unhandledrejection", (ev) => { if (window.filmcraftLoad.readyMs && isFatal(ev.reason)) window.filmcraftFatal(ev.reason); });
   </script>
-  <script src="touch.js?v=86050ed39d57535d-8446456"></script>
+  <script src="touch.js?v=86050ed39d57535d-a365c85"></script>
   <script>
     if ("serviceWorker" in navigator && location.protocol === "https:") {
       addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));

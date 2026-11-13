@@ -640,8 +640,7 @@
       <div class="dl">
         <div class="dlin"><input type="url" inputmode="url" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Paste a video link to download"><button type="button" data-a="paste">Paste</button></div>
         <div class="row2">
-          <button type="button" data-a="mp4">${ico("dl")}<span>MP4 video</span></button>
-          <button type="button" data-a="mp3">${ico("note")}<span>MP3 audio</span></button>
+          <button type="button" data-a="mp4">${ico("dl")}<span>Download video (MP4)</span></button>
         </div>
         <button type="button" class="dlhelp" data-a="dlhelp">How downloading works · set up</button>
       </div>
@@ -657,7 +656,7 @@
     else if (a === "recent") { hideStart(); setMode("import"); }
     else if (a === "back") hideStart();
     else if (a === "paste") pasteLink();
-    else if (a === "mp4" || a === "mp3") download(a);
+    else if (a === "mp4") download(a);
     else if (a === "dlhelp") dlSetupSheet();
   });
 
@@ -699,7 +698,7 @@
     const link = cleanLink(dlInput.value);
     if (!link) { toast("Paste a video link first", true); dlInput.focus(); return; }
     if (!store.get("dlReady", false)) { dlSetupSheet(kind); return; }
-    const url = "shortcuts://run-shortcut?name=" + encodeURIComponent(DL_SHORTCUT) + "&input=text&text=" + encodeURIComponent(kind + " " + link);
+    const url = "shortcuts://run-shortcut?name=" + encodeURIComponent(DL_SHORTCUT) + "&input=text&text=" + encodeURIComponent(link);
     dlWaiting = true;
     location.href = url;
   }
@@ -738,8 +737,8 @@
       step(2, "Open a-Shell, paste this and press return:", "pip install -U yt-dlp");
       step("2b", "Then paste this and press return (one command at a time):", `mkdir -p ${DL_DIR}`);
       step(3, `In the <b>Shortcuts</b> app tap <b>+</b> and name the shortcut exactly <b>${DL_SHORTCUT}</b>. Tap <b>ⓘ</b> and turn on <b>Show in Share Sheet</b> (so it receives the link).`);
-      step(4, "Add one a-Shell <b>Execute Command</b> action. Type this (with the space at the end), then tap <b>Select Variable</b> and choose <b>Shortcut Input</b> so it goes right after <i>-t</i>:", `yt-dlp -P ${DL_DIR} -t `);
-      step(5, "Tap <b>›</b> on the action and set <b>Open the app to execute the commands?</b> to <b>yes</b>, so long downloads aren't cut off. The editor sends <i>mp4 link</i> or <i>mp3 link</i>, which completes the command.");
+      step(4, "Add one a-Shell <b>Execute Command</b> action. Type this (with the space at the end), then tap <b>Select Variable</b> and choose <b>Shortcut Input</b> so the link goes at the end:", `yt-dlp -t mp4 -P ${DL_DIR} `);
+      step(5, "Tap <b>›</b> on the action and set <b>Open the app to execute the commands?</b> to <b>yes</b>, so long downloads aren't cut off. The editor sends the video link, which completes the command.");
       s.appendChild(el("p", { class: "dlnote" }, "Files land in <b>Files → On My iPhone → a-Shell → Downloads</b>. Tap <b>Add videos</b> → <b>Choose File</b> to put one on the timeline. If a site stops working, run <code>pip install -U yt-dlp</code> in a-Shell. Only download videos you have the right to use."));
       const ok = el("button", { type: "button", class: "fct-primary" }, then ? "Done, download now" : "Done");
       ok.addEventListener("click", () => { store.set("dlReady", true); closeSheet(); if (then) setTimeout(() => download(then), 250); });
