@@ -1,8 +1,8 @@
 // FilmCraft Home Screen app: offline cache.
-// `f3ae7eb5c26f` is replaced by the deploy workflow, so every new build gets a fresh cache.
+// `56112cffacb4` is replaced by the deploy workflow, so every new build gets a fresh cache.
 // The page (index.html) is network-first so updates show up right away; everything else is
 // cache-first (the app's .js/.wasm URLs carry a build hash, so a new build has new URLs).
-const CACHE = "filmcraft-f3ae7eb5c26f";
+const CACHE = "filmcraft-56112cffacb4";
 const SHELL = [
   "./",
   "touch.css",
