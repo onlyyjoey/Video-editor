@@ -692,7 +692,7 @@
     }
     if (id && /^[\w-]{6,}$/.test(id)) return "https://www.youtube.com/watch?v=" + id;
     const plain = u.origin + u.pathname;
-    return /^[\w.:\/%~+-]+$/.test(plain) ? plain : null;
+    return /^[\w.:\/%~+@-]+$/.test(plain) ? plain : null;
   }
   let dlWaiting = false;
   function download(kind) {
