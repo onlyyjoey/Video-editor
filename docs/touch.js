@@ -721,7 +721,6 @@
     }
   }
   function dlSetupSheet(then) {
-    const cmd = (k) => `yt-dlp -t ${k} -P ${DL_DIR} URLs`;
     sheet("Download from a link", (s) => {
       s.classList.add("fct-dlsheet");
       const step = (n, html, code) => {
@@ -738,12 +737,9 @@
       step(1, 'Get <a href="https://apps.apple.com/app/a-shell/id1473805438" target="_blank" rel="noopener">a-Shell</a> from the App Store.');
       step(2, "Open a-Shell, paste this and press return:", "pip install -U yt-dlp");
       step("2b", "Then paste this and press return (one command at a time):", `mkdir -p ${DL_DIR}`);
-      step(3, `In the <b>Shortcuts</b> app tap <b>+</b> and name the shortcut exactly <b>${DL_SHORTCUT}</b>. Add these actions:<ol>
-        <li><b>Get URLs from Input</b> (input: Shortcut Input)</li>
-        <li><b>If</b> Shortcut Input <b>contains</b> mp3</li>
-        <li>inside If: a-Shell <b>Execute Command</b> with this, then replace <i>URLs</i> with the 🔗 Shortcut input variable:</li></ol>`, cmd("mp3"));
-      step(4, "Below End If: another <b>If</b> Shortcut Input <b>does not contain</b> mp3, with this <b>Execute Command</b> inside (same variable at the end). Set both If inputs to Type <b>Text</b>:", cmd("mp4"));
-      step(5, "In both Execute Command actions tap <b>Show More</b> and turn on <b>Open in app</b>, so long downloads aren't cut off.");
+      step(3, `In the <b>Shortcuts</b> app tap <b>+</b> and name the shortcut exactly <b>${DL_SHORTCUT}</b>. Tap <b>ⓘ</b> and turn on <b>Show in Share Sheet</b> (so it receives the link).`);
+      step(4, "Add one a-Shell <b>Execute Command</b> action. Type this (with the space at the end), then tap <b>Select Variable</b> and choose <b>Shortcut Input</b> so it goes right after <i>-t</i>:", `yt-dlp -P ${DL_DIR} -t `);
+      step(5, "Tap <b>›</b> on the action and set <b>Open the app to execute the commands?</b> to <b>yes</b>, so long downloads aren't cut off. The editor sends <i>mp4 link</i> or <i>mp3 link</i>, which completes the command.");
       s.appendChild(el("p", { class: "dlnote" }, "Files land in <b>Files → On My iPhone → a-Shell → Downloads</b>. Tap <b>Add videos</b> → <b>Choose File</b> to put one on the timeline. If a site stops working, run <code>pip install -U yt-dlp</code> in a-Shell. Only download videos you have the right to use."));
       const ok = el("button", { type: "button", class: "fct-primary" }, then ? "Done, download now" : "Done");
       ok.addEventListener("click", () => { store.set("dlReady", true); closeSheet(); if (then) setTimeout(() => download(then), 250); });
