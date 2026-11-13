@@ -698,9 +698,11 @@
     const link = cleanLink(dlInput.value);
     if (!link) { toast("Paste a video link first", true); dlInput.focus(); return; }
     if (!store.get("dlReady", false)) { dlSetupSheet(kind); return; }
+    // The Shortcut reads the link from the clipboard (passing it as Shortcut input proved unreliable).
     const url = "shortcuts://run-shortcut?name=" + encodeURIComponent(DL_SHORTCUT) + "&input=text&text=" + encodeURIComponent(link);
     dlWaiting = true;
-    location.href = url;
+    const go = () => { location.href = url; };
+    try { navigator.clipboard.writeText(link).then(go, go); } catch { go(); }
   }
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState !== "visible" || !dlWaiting) return;
@@ -736,8 +738,8 @@
       step(1, 'Get <a href="https://apps.apple.com/app/a-shell/id1473805438" target="_blank" rel="noopener">a-Shell</a> from the App Store.');
       step(2, "Open a-Shell, paste this and press return:", "pip install -U yt-dlp");
       step("2b", "Then paste this and press return (one command at a time):", `mkdir -p ${DL_DIR}`);
-      step(3, `In the <b>Shortcuts</b> app tap <b>+</b> and name the shortcut exactly <b>${DL_SHORTCUT}</b>. Tap <b>ⓘ</b> and turn on <b>Show in Share Sheet</b> (so it receives the link).`);
-      step(4, "Add one a-Shell <b>Execute Command</b> action. Type this (with the space at the end), then tap <b>Select Variable</b> and choose <b>Shortcut Input</b> so the link goes at the end:", `yt-dlp -t mp4 -P ${DL_DIR} `);
+      step(3, `In the <b>Shortcuts</b> app tap <b>+</b> and name the shortcut exactly <b>${DL_SHORTCUT}</b>. `);
+      step(4, "Add one a-Shell <b>Execute Command</b> action. Type this (with the space at the end), then pick <b>Clipboard</b> from the variables above the keyboard so the link goes at the end. The editor copies the link for you:", `yt-dlp -t mp4 -P ${DL_DIR} `);
       step(5, "Tap <b>›</b> on the action and set <b>Open the app to execute the commands?</b> to <b>yes</b>, so long downloads aren't cut off. The editor sends the video link, which completes the command.");
       s.appendChild(el("p", { class: "dlnote" }, "Files land in <b>Files → On My iPhone → a-Shell → Downloads</b>. Tap <b>Add videos</b> → <b>Choose File</b> to put one on the timeline. If a site stops working, run <code>pip install -U yt-dlp</code> in a-Shell. Only download videos you have the right to use."));
       const ok = el("button", { type: "button", class: "fct-primary" }, then ? "Done, download now" : "Done");
