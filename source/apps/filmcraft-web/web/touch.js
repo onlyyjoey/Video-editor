@@ -721,7 +721,8 @@
       };
       s.appendChild(el("p", { class: "dlnote" }, "Downloads run in the free <b>a-Shell</b> app with <b>yt-dlp</b>, started by a Shortcut. One-time setup:"));
       step(1, 'Get <a href="https://apps.apple.com/app/a-shell/id1473805438" target="_blank" rel="noopener">a-Shell</a> from the App Store.');
-      step(2, "Open a-Shell, paste this and press return:", `pip install -U yt-dlp; mkdir -p ${DL_DIR}`);
+      step(2, "Open a-Shell, paste this and press return:", "pip install -U yt-dlp");
+      step("2b", "Then paste this and press return (one command at a time):", `mkdir -p ${DL_DIR}`);
       step(3, `In the <b>Shortcuts</b> app tap <b>+</b> and name the shortcut exactly <b>${DL_SHORTCUT}</b>. Add these actions:<ol>
         <li><b>Get URLs from Input</b> (input: Shortcut Input)</li>
         <li><b>If</b> Shortcut Input <b>contains</b> mp3</li>
