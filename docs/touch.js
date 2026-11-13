@@ -101,6 +101,9 @@
     lockh: '<path d="M3.5 12h17M7 8.5 3.5 12 7 15.5M17 8.5l3.5 3.5-3.5 3.5"/>',
     down: '<path d="M6 9.5l6 6 6-6"/>',
     save: '<path d="M5 4h11l3 3v13H5z"/><path d="M8 4v5h7V4M8 20v-6h8v6"/>',
+    dl: '<path d="M12 4v11M7 10.5l5 5 5-5M5 20h14"/>',
+    note: '<path d="M9 18V5l10-2v13"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="16.5" cy="16" r="2.5"/>',
+    copy: '<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/>',
   };
   const ico = (n) => `<svg viewBox="0 0 24 24" aria-hidden="true">${P[n] || ""}</svg>`;
   const el = (tag, attrs, html) => {
@@ -634,6 +637,14 @@
         <button type="button" data-a="open">${ico("media")}<span>Open project</span></button>
         <button type="button" data-a="recent">${ico("home")}<span>Recent projects</span></button>
       </div>
+      <div class="dl">
+        <div class="dlin"><input type="url" inputmode="url" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Paste a video link to download"><button type="button" data-a="paste">Paste</button></div>
+        <div class="row2">
+          <button type="button" data-a="mp4">${ico("dl")}<span>MP4 video</span></button>
+          <button type="button" data-a="mp3">${ico("note")}<span>MP3 audio</span></button>
+        </div>
+        <button type="button" class="dlhelp" data-a="dlhelp">How downloading works · set up</button>
+      </div>
       <button type="button" class="back" data-a="back">Back to editing</button>
     </div>`;
   let startNew = false; // the next import starts a new video
@@ -645,7 +656,84 @@
     else if (a === "open") { hideStart(); run(null, () => menu("file.open")).then(() => setTimeout(checkStart, 1500)); }
     else if (a === "recent") { hideStart(); setMode("import"); }
     else if (a === "back") hideStart();
+    else if (a === "paste") pasteLink();
+    else if (a === "mp4" || a === "mp3") download(a);
+    else if (a === "dlhelp") dlSetupSheet();
   });
+
+  // ------------------------------------------------------------------ download from a link (yt-dlp in a-Shell, run by an iPhone Shortcut)
+  // A web page can't fetch videos from YouTube and similar sites, so the page hands the link to a Shortcut
+  // named DL_SHORTCUT, which runs yt-dlp in the a-Shell app and saves the file to a-Shell's Downloads folder.
+  const DL_SHORTCUT = "Video Download";
+  const DL_DIR = "~/Documents/Downloads";
+  const dlInput = start.querySelector(".dlin input");
+  dlInput.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); dlInput.blur(); } });
+  async function pasteLink() {
+    try {
+      const t = (await navigator.clipboard.readText()).trim();
+      if (t) dlInput.value = t; else toast("Nothing copied yet");
+    } catch { dlInput.focus(); toast("Tap the box and choose Paste"); }
+  }
+  function cleanLink(text) {
+    const m = String(text || "").match(/https?:\/\/[^\s"'<>`\\]+/i);
+    if (!m) return null;
+    try { const u = new URL(m[0]); return u.protocol === "https:" || u.protocol === "http:" ? u.href : null; } catch { return null; }
+  }
+  let dlWaiting = false;
+  function download(kind) {
+    const link = cleanLink(dlInput.value);
+    if (!link) { toast("Paste a video link first", true); dlInput.focus(); return; }
+    if (!store.get("dlReady", false)) { dlSetupSheet(kind); return; }
+    const url = "shortcuts://run-shortcut?name=" + encodeURIComponent(DL_SHORTCUT) + "&input=text&text=" + encodeURIComponent(kind + " " + link);
+    dlWaiting = true;
+    location.href = url;
+  }
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState !== "visible" || !dlWaiting) return;
+    dlWaiting = false;
+    dlInput.value = "";
+    toast("When a-Shell finishes, tap Add videos → Choose File → a-Shell → Downloads");
+  });
+  function copyText(text) {
+    const done = () => toast("Copied");
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, () => fallback());
+    else fallback();
+    function fallback() {
+      const t = el("textarea", { readonly: "", style: "position:fixed;opacity:0" });
+      t.value = text; document.body.appendChild(t); t.select();
+      try { document.execCommand("copy"); done(); } catch { toast("Couldn't copy", true); }
+      t.remove();
+    }
+  }
+  function dlSetupSheet(then) {
+    const cmd = (k) => `yt-dlp -t ${k} -P ${DL_DIR} "URLs"`;
+    sheet("Download from a link", (s) => {
+      s.classList.add("fct-dlsheet");
+      const step = (n, html, code) => {
+        const d = el("div", { class: "dlstep" }, `<b>${n}</b><div>${html}</div>`);
+        if (code) {
+          const c = el("div", { class: "dlcode" }, `<code></code><button type="button" aria-label="Copy">${ico("copy")}</button>`);
+          c.querySelector("code").textContent = code;
+          c.querySelector("button").addEventListener("click", () => copyText(code));
+          d.lastChild.appendChild(c);
+        }
+        s.appendChild(d);
+      };
+      s.appendChild(el("p", { class: "dlnote" }, "Downloads run in the free <b>a-Shell</b> app with <b>yt-dlp</b>, started by a Shortcut. One-time setup:"));
+      step(1, 'Get <a href="https://apps.apple.com/app/a-shell/id1473805438" target="_blank" rel="noopener">a-Shell</a> from the App Store.');
+      step(2, "Open a-Shell, paste this and press return:", `pip install -U yt-dlp; mkdir -p ${DL_DIR}`);
+      step(3, `In the <b>Shortcuts</b> app tap <b>+</b> and name the shortcut exactly <b>${DL_SHORTCUT}</b>. Add these actions:<ol>
+        <li><b>Get URLs from Input</b> (input: Shortcut Input)</li>
+        <li><b>If</b> Shortcut Input <b>contains</b> mp3</li>
+        <li>inside If: a-Shell <b>Execute Command</b> with this, then replace <i>URLs</i> with the URLs variable:</li></ol>`, cmd("mp3"));
+      step(4, "Under <b>Otherwise</b>: another <b>Execute Command</b>, again with the URLs variable:", cmd("mp4"));
+      step(5, "In both Execute Command actions tap <b>Show More</b> and turn on <b>Open in app</b>, so long downloads aren't cut off.");
+      s.appendChild(el("p", { class: "dlnote" }, "Files land in <b>Files → On My iPhone → a-Shell → Downloads</b>. Tap <b>Add videos</b> → <b>Choose File</b> to put one on the timeline. If a site stops working, run <code>pip install -U yt-dlp</code> in a-Shell. Only download videos you have the right to use."));
+      const ok = el("button", { type: "button", class: "fct-primary" }, then ? "Done, download now" : "Done");
+      ok.addEventListener("click", () => { store.set("dlReady", true); closeSheet(); if (then) setTimeout(() => download(then), 250); });
+      s.appendChild(ok);
+    });
+  }
   async function showStart(fromHome) {
     const seq = await sequence();
     start.querySelector(".back").hidden = !seq;
